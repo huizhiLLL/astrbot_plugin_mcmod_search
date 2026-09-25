@@ -1,24 +1,24 @@
 # AstrBot MCMod 搜索与详情工具
 
-只注册一个 LLM 工具 `mcmod_search`，直接请求 MCMod，不启动本地 API、中转进程或监听端口。
+只注册两个 LLM 工具 `mcmod_search` 和 `mcmod_detail`，直接请求 MCMod，不启动本地 API、中转进程或监听端口。
 
-## 两种操作
+## 两个工具
 
-### 搜索页面
+### `mcmod_search`
 
-```json
-{"operation":"search","query":"机械动力","search_type":"mod","page":1}
-```
-
-返回匹配结果的名称和 MCMod URL。`search_type` 支持 `mod` 模组、`modpack` 整合包、`item` 物品、`post` 教程、`all` 综合搜索。
-
-### 读取详情
+搜索工具要求必填 `query`，可选 `search_type` 和 `page`：
 
 ```json
-{"operation":"detail","url":"https://www.mcmod.cn/class/2021.html"}
+{"query":"机械动力","search_type":"mod","page":1}
 ```
 
-返回页面标题、类型、简介、支持的 Minecraft 版本、作者、更新日志条目和长度受限的正文摘要。详情操作只接受 `mcmod.cn` 站内的 `/class/`、`/modpack/`、`/item/`、`/post/` 页面。
+### `mcmod_detail`
+
+详情工具要求必填 MCMod 站内 URL：
+
+```json
+{"url":"https://www.mcmod.cn/class/2021.html"}
+```
 
 ## 安全与稳定性
 

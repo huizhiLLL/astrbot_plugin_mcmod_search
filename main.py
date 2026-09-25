@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import re
-from typing import Any, Literal
+from typing import Any
 from urllib.parse import urljoin, urlparse
 
 import aiohttp
@@ -15,8 +15,6 @@ from astrbot.api.event import AstrMessageEvent
 from astrbot.api.star import Star, register
 
 PLUGIN_NAME = "astrbot_plugin_mcmod_search"
-SearchType = Literal["mod", "modpack", "item", "post", "all"]
-Operation = Literal["search", "detail"]
 
 
 @register(
@@ -46,34 +44,20 @@ class MCModSearchPlugin(Star):
     async def mcmod_search(
         self,
         event: AstrMessageEvent,
-        operation: Operation = "search",
-        query: str = "",
-        search_type: SearchType = "all",
+        query: str,
+        search_type: str = "all",
         page: int = 1,
-        url: str = "",
     ) -> str:
-        """搜索 MCMod，或读取一个 MCMod 页面详情并返回结构化 JSON。
+        """搜索 MCMod 模组、整合包、物品或教程。
 
-        operation=search：根据用户问题传入 query 和类型。mod 是模组，modpack
-        是整合包，item 是物品，post 是教程，all 是综合搜索；page 范围为 1 到 20。
-        operation=detail：传入 MCMod 站内 url，读取标题、简介、作者、支持版本、
-        更新日志和正文摘要，不需要 query。用户询问具体 MCMod 页面详情时使用它。
+        必须传入 query 搜索关键词。search_type 可选 mod（模组）、modpack（整合包）、
+        item（物品）、post（教程）或 all（综合搜索）。page 范围为 1 到 20。
         普通 Minecraft 知识问答不要调用此工具。
         """
-        if operation not in ("search", "detail"):
-            return self._error("operation 必须是 search 或 detail")
         try:
-            if operation == "detail":
-                normalized_url = self._normalize_mcmod_url(url)
-                if not normalized_url:
-                    return self._error("detail 操作需要有效的 MCMod 站内 url")
-                html = await self._fetch_page(normalized_url)
-                detail = self._parse_detail(html, normalized_url)
-                return self._json({"ok": True, "source": "mcmod.cn", "detail": detail})
-
             normalized_query = self._normalize_query(query)
             if not normalized_query:
-                return self._error("search 操作需要 query")
+                return self._error("搜索需要 query 关键词")
             if len(normalized_query) > self.MAX_QUERY_LENGTH:
                 return self._error(f"query 过长，最多 {self.MAX_QUERY_LENGTH} 个字符")
             if search_type not in (*self.SEARCH_TYPES, "all"):
@@ -95,7 +79,31 @@ class MCModSearchPlugin(Star):
             logger.warning("MCMod 请求失败: %s", exc)
             return self._error("MCMod 暂时无法访问，请稍后再试")
         except Exception:
-            logger.exception("MCMod 搜索或详情解析失败")
+            logger.exception("MCMod 搜索解析失败")
+            return self._error("MCMod 页面解析失败")
+
+    @llm_tool(name="mcmod_detail")
+    async def mcmod_detail(self, event: AstrMessageEvent, url: str) -> str:
+        """读取 MCMod 站内页面详情。
+
+        必须传入 MCMod 站内 url。用户询问某个具体模组、整合包、物品或教程页面详情时调用。
+        普通 Minecraft 知识问答不要调用此工具。
+        """
+        try:
+            normalized_url = self._normalize_mcmod_url(url)
+            if not normalized_url:
+                return self._error("详情查询需要有效的 MCMod 站内 url")
+            html = await self._fetch_page(normalized_url)
+            detail = self._parse_detail(html, normalized_url)
+            return self._json({"ok": True, "source": "mcmod.cn", "detail": detail})
+        except asyncio.TimeoutError as exc:
+            logger.warning("MCMod 详情请求超时: %s", exc)
+            return self._error("MCMod 详情请求超时，请稍后再试")
+        except aiohttp.ClientError as exc:
+            logger.warning("MCMod 详情请求失败: %s", exc)
+            return self._error("MCMod 暂时无法访问，请稍后再试")
+        except Exception:
+            logger.exception("MCMod 详情解析失败")
             return self._error("MCMod 页面解析失败")
 
     async def _fetch_search_page(self, query: str, page: int) -> str:
