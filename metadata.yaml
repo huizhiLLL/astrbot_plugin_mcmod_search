@@ -1,6 +1,6 @@
 name: astrbot_plugin_mcmod_search
 display_name: MCMod 搜索工具
 desc: 为 LLM 提供直接查询 MCMod 模组、整合包、物品和教程的工具
-version: v0.2.3
+version: v0.2.4
 author: 小枝
 repo: https://github.com/huizhiLLL/astrbot_plugin_mcmod_search

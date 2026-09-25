@@ -52,6 +52,12 @@ class MCModSearchPlugin(Star):
 
         必须传入 query 搜索关键词。search_type 可选 mod（模组）、modpack（整合包）、
         item（物品）、post（教程）或 all（综合搜索）。page 范围为 1 到 20。
+
+        Args:
+            query(string): 要搜索的模组、整合包、物品或教程名称，必须提供。
+            search_type(string): 搜索类型，可选 mod、modpack、item、post 或 all，默认 all。
+            page(number): 搜索页码，范围为 1 到 20，默认 1。
+
         普通 Minecraft 知识问答不要调用此工具。
         """
         try:
@@ -94,6 +100,10 @@ class MCModSearchPlugin(Star):
         """读取 MCMod 站内页面详情。
 
         必须传入 MCMod 站内 url。用户询问某个具体模组、整合包、物品或教程页面详情时调用。
+
+        Args:
+            url(string): MCMod 站内页面 URL，必须是 mcmod.cn 的 /class/、/modpack/、/item/ 或 /post/ 页面。
+
         普通 Minecraft 知识问答不要调用此工具。
         """
         try:
