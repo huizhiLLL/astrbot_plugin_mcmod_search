@@ -44,7 +44,7 @@ class MCModSearchPlugin(Star):
     async def mcmod_search(
         self,
         event: AstrMessageEvent,
-        query: str,
+        query: str = "",
         search_type: str = "all",
         page: int = 1,
     ) -> str:
@@ -57,7 +57,14 @@ class MCModSearchPlugin(Star):
         try:
             normalized_query = self._normalize_query(query)
             if not normalized_query:
-                return self._error("搜索需要 query 关键词")
+                message_text = ""
+                try:
+                    message_text = event.get_message_str() or ""
+                except Exception:
+                    message_text = ""
+                normalized_query = self._normalize_query(message_text)
+            if not normalized_query:
+                return self._error("搜索需要 query 关键词；请传入要搜索的模组、整合包、物品或教程名称")
             if len(normalized_query) > self.MAX_QUERY_LENGTH:
                 return self._error(f"query 过长，最多 {self.MAX_QUERY_LENGTH} 个字符")
             if search_type not in (*self.SEARCH_TYPES, "all"):

@@ -6,7 +6,7 @@
 
 ### `mcmod_search`
 
-搜索工具要求必填 `query`，可选 `search_type` 和 `page`：
+搜索工具优先使用 `query`，AstrBot 在异常情况下传入空参数时会回退读取当前消息文本；可选 `search_type` 和 `page`：
 
 ```json
 {"query":"机械动力","search_type":"mod","page":1}
