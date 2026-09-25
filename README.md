@@ -1,29 +1,35 @@
-# AstrBot MCMod 搜索工具
+# AstrBot MCMod 搜索与详情工具
 
-只注册一个 LLM 工具 `mcmod_search`，直接请求 `search.mcmod.cn`，不启动本地 API、中转进程或监听端口。
+只注册一个 LLM 工具 `mcmod_search`，直接请求 MCMod，不启动本地 API、中转进程或监听端口。
 
-## 工具参数
+## 两种操作
 
-- `query`：搜索关键词
-- `search_type`：`mod` 模组、`modpack` 整合包、`item` 物品、`post` 教程、`all` 综合搜索
-- `page`：页码，1–20
+### 搜索页面
 
-模型根据用户问题选择类型。例如“查机械动力模组”传入 `mod`，“GTNH 是什么整合包”传入 `modpack`，“查钻石物品”传入 `item`。无法确定类型时使用 `all`。
+```json
+{"operation":"search","query":"机械动力","search_type":"mod","page":1}
+```
 
-## 特性
+返回匹配结果的名称和 MCMod URL。`search_type` 支持 `mod` 模组、`modpack` 整合包、`item` 物品、`post` 教程、`all` 综合搜索。
 
-- 无固定命令前缀，仅作为 LLM 工具提供
-- 直接请求 MCMod 搜索页
-- 使用 `params` 编码查询参数
-- 每次解析使用独立的去重集合，适合并发调用
+### 读取详情
+
+```json
+{"operation":"detail","url":"https://www.mcmod.cn/class/2021.html"}
+```
+
+返回页面标题、类型、简介、支持的 Minecraft 版本、作者、更新日志条目和长度受限的正文摘要。详情操作只接受 `mcmod.cn` 站内的 `/class/`、`/modpack/`、`/item/`、`/post/` 页面。
+
+## 安全与稳定性
+
+- 使用 `params` 编码搜索参数
+- 每次解析使用独立去重集合，支持并发调用
 - 请求连接、读取和总时长均有限制
-- 查询长度、页码和结果数量有限制
-- 返回 JSON 结构化结果
-- 仅接受 `mcmod.cn` 域名链接，过滤分类导航链接
+- 限制查询长度、页码、结果数量和详情正文长度
+- 严格校验详情 URL，避免请求外部地址
+- 只返回结构化 JSON，不把整页导航直接交给模型
 
 ## 安装
-
-在 AstrBot 插件目录安装依赖：
 
 ```bash
 pip install -r requirements.txt
